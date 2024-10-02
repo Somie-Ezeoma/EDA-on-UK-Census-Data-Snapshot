@@ -1,0 +1,197 @@
+---
+title: "THE COMPLEXITIES OF INCOME IMBALANCE: Factors that Shape Economic Inequalities"
+author: "Ezeomataude Somtochukwu Blessing"
+format: 
+  html:
+    code-fold: true
+    code-link: true
+    code-tools: true
+    embed-resources: true
+    toc: true
+    number-sections: true
+    toc-location: left
+editor: visual
+bibliography: references.bib
+---
+
+# Introduction
+This analysis consists of a modified snapshot of data collected during a household census conducted in England in 2021.Our mission is to investigate the causes of economic inequality and identify the different aspects of income imbalances. Our goal is to provide light on the complex nature of income distribution and its relationships with different factors through visual investigations and perceptive analysis. To achieve this objective, visual representations such as charts and plots will be employed. The report will be prepared using Quarto. The creation of compelling and informative data visualizations will be facilitated by the ggplot2 [@ggplot2-2] and ggthemes package [@ggthemes], both integral components of the tidyverse - a collection of R packages designed for data analysis, manipulation, and visualization [@tidyverse]. The referenced book (@wickham2023r) served as a crucial resource, offering guidance on effectively navigating R for data analysis.
+
+# Data Exploration and Preprocessing
+Following the loading and exploration of the dataset, the dataset contains 21 features with 27,410 rows. A robust amount of missing value was found,12 duplicate entries and 11 missing values in the '3_Point_Percent' column were found. Missing values were imputed with zero, and duplicates were kept as they represented distinct player entries. Standard scaling was applied to normalize the data.
+
+```{r}
+#| label: Load my Packages
+#| output: false
+library(tidyverse)
+library(ggplot2)
+library(ggthemes)
+library(skimr)
+library(scales)
+library(corrplot)
+library(readr)
+```
+
+```{r}
+#| label: Load the dataset
+#| output: false
+data_1 <- read_csv("C:/Users/mango/Downloads/Data Science/Data Science/data-1.csv")
+```
+
+```{r}
+#| label: Check for Duplicate values
+#| output: false
+# any(duplicated(data_1))
+```
+
+```{r}
+#| label: Check for null values
+#| output: false
+null_values <- is.na(data_1)
+null_values
+```
+
+```{r}
+#| label: Drop the null values
+#| output: false
+newdata <- data_1[complete.cases(data_1), ]
+view(newdata)
+```
+
+## Feature Engineering:
+To enhance visualization and better analyze the age feature, I opted to create another column by categorizing the age feature into distinct age brackets such as Children, Teenagers, Young Adults, Middle-Aged Adults, and Older Adults. This grouping allows for a more comprehensive and meaningful visualization of the data.
+
+```{r}
+#| label: A new column created
+newdata1 <- newdata |>
+  mutate(Age_Group = case_when(
+    Age >= 0 & Age <= 15 ~ "Children",
+    Age >= 16 & Age <= 20 ~ "Teenagers",
+    Age >= 21 & Age <= 39 ~ "Young Adults",
+    Age >= 40 & Age <= 59 ~ "Adult (Middle Age)",
+    Age >= 60 ~ "Old Age",
+    TRUE ~ "Unknown"
+  ))
+```
+
+# Income Distribution by Age:
+Analysing the distribution of income among various age groups, we find several trends. We can see that as people move through different phases of life, their income tends to rise. Teenagers and young adults, who are still in the early stages of their education or careers, typically have lower income levels. Middle-aged adults, between the ages of 40 and 60, typically have higher average income. This might be due to factors like differences in Education level or Careers.
+
+```{r}
+#| label: Group Age by the Educational Level and Age Group
+#| output: false
+Edu_data <- newdata1 |>
+  group_by(`Highest Ed`, Age_Group) |>
+  summarize(avg_income = mean(INC), n=n())
+```
+
+```{r}
+#| label: A bar chart visualizing Average Income by Age
+ggplot(Edu_data, aes(x = Age_Group, y = avg_income, fill = Age_Group)) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.7) +
+  labs(
+    title = "Average Income vs Age Group",
+    x = "Age Group",
+    y = "Average Income(in pounds)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_y_continuous(labels = scales::comma)
+```
+
+## Navigating Income Distribution by Age and Education:
+The Visualization of Age and Education, we can observe that middle-aged adults with Advanced Educational levels (Masters or Higher) tend to have higher income levels. While Young Adults exhibit variation in Income levels, this shows the importance of education in Age and Income Patterns. Therefore, it is important to promote educational opportunities for all ages in order to promote Economic Equality.
+
+```{r, fig.width=15, fig.height=8}
+#| label: A bar plot for income by education level and Age
+ggplot(Edu_data, aes(x = `Highest Ed`, y = avg_income, fill = `Age_Group`)) +
+  geom_bar(stat = "identity", color = 'black') +
+  labs(
+    title = "Average Income vs Age and Education Level",
+    x = "Highest Education Level",
+    y = "Average Income (in pounds)"
+  ) +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::comma) +  
+  theme(axis.text.x = element_text(size=15))
+```
+
+## Income Distribution by Ethnicity:
+Visualizing Income Distribution across different ethnic groups, we observed significant disparities. The data revealed Individuals identified as "White" have higher average income compared to other ethnic groups. Individuals identified as "Black" and "Asian" tend to have lower average incomes. This can be influenced by factors such as educational level and Employment opportunities. This led to the visualization of Income Distribution by Ethnicity and Educational level
+
+```{r}
+#| labe: A bar plot for income vs Ethnicity
+ggplot(newdata1, aes(x = `Eth`, y = INC, fill = `Eth`)) +
+  geom_bar(stat = "summary", fun = "mean", position = "dodge", width = 0.7) +
+  labs(
+    title = "Average Income vs Ethnicity",
+    x = "Ethnicity",
+    y = "Average Income (in pounds)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## Income Distribution by Ethnicity and Education:
+The data revealed variation in income level. We can observe that individuals identified as "Hispanic" have higher Advanced educational levels compared to others, Individuals identified as "Black" and "Other" have a similar trend in Advanced educational level as that of the "White". And yet the "Whites" have higher average income. One possible explanation for the variation in Income level is the existence of systematic racism and discrimination in the labour market. According to (@daniels2020race), individuals from Ethnic Minority groups experience prejudice during the Hiring and Promotion processes. Therefore, it is important to highlight the need for Policies and Interventions towards reducing Economic Inequalities.
+
+```{r}
+#| label: Group Age by the Educational Level and Ethnicity
+#| output: false
+Eth_Edu_data <- newdata1 |>
+  group_by(`Highest Ed`, Eth) |>
+  summarize(avg_income = mean(INC), n=n())
+```
+
+```{r}
+#| label: A scatter plot for income by Ethnicity and Educational level
+ggplot(Eth_Edu_data, aes(x = `Eth`, y = avg_income, fill = `Highest Ed`)) +
+  geom_bar(stat = "identity", color = 'black') +
+  labs(
+    title = "Average Income vs Ethnicity and Education Level",
+    x = "Ethnicity",
+    y = "Average Income (in pounds)"
+  ) +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::comma)
+```
+
+## Income Distribution by Room Accessibility:
+Visualizing Income Distribution by room Accessibility, we may observe variations in income levels based on the accessibility of rooms within the accommodation. Households with room exclusivity tend to have higher incomes compared to those without such exclusivity. It can be determined from this that individuals with greater incomes are more likely to be able to afford private accommodations that offer exclusive access.
+
+```{r}
+#| label: Rename the H8 column to Room Accessibility}
+data_3 <- newdata1 |>
+  rename(Room_Accessibility = H8)
+data_3 <- data_3 |> mutate(Room_Accessibility = ifelse(Room_Accessibility == 1, "No", "Yes"))
+#| label: A Scattter/Point plot for income vs Room Accessibility
+ggplot(
+  data = data_3,
+  mapping = aes(x =factor(Room_Accessibility ), y =INC)
+)+
+  geom_point(aes(color = Room_Accessibility))+
+  scale_y_continuous(labels = comma) +
+  labs(title = "Scatter Plot of Income Distribution with Room Accesibility",
+       x = "Room_Accesibility",y="INC")
+```
+
+## Income Distribution by Room Accessibility, Ethnicity and Marital Status:
+When examining the distribution of income by room accessibility, ethnicity, and marital status, we can observe several interesting patterns, the visualization can provide insights into how income levels and housing dynamics vary across different ethnic groups and marital status. It revealed that most of the individual identified as "White" Predominantly lean towards exclusive room arrangements, with minimal representation from other ethnic groups while only the "Asians" demographic displays a preference for shared accommodations, possibly influenced by cultural factors. (@alavi2011living) mentioned that older Asians tend to favor residing with their children or other family members rather than living independently, this could be a factor as to why the "Asians" predominantly stay in shared accommodation. We can also observe that those who could afford to live in houses with exclusive room accessibility predominantly couples. This trend suggests that the affordability of such housing arrangements is facilitated by the combined income of couples, making it more feasible compared to single individuals.
+
+```{r width=15}
+#| label: A Scattter/Point plot for Income vs Room Accessibility, Ethnicity and Marital Status
+ggplot(
+  data = data_3,
+  mapping = aes(x = Room_Accessibility, y =INC)
+)+
+  geom_point(aes(color = Eth, shape=Mar_Stat))+
+  scale_y_continuous(labels = comma) +
+  labs(title = "Scatter Plot of Income Distribution with Room Acc, Ethnicity and Marital Status",
+       x = "Room_Accessibilty",y="INC")
+```
+# Conclusion
+To sum up, this research provides an in-depth understanding of the elements that lead to differences in income. The results highlight the ways in which household, socioeconomic, and demographic factors interact to shape economic inequality. Policymakers are advised to implement focused initiatives in the areas of employment, housing, and education in order to reduce inequalities and promote equality in society.
+
+# References
