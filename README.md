@@ -1,0 +1,2 @@
+# EDA-on-UK-Census-Data-Snapshot
+An analysis of the UK census snapshot dataset was conducted to extract insights, utilizing R programming tools. The process began by importing key packages, such as ggplot (Wickham 2016) for visualization and tidyverse (Wickham et al. 2019) for effective data transformation and presentation, alongside several other tools. The project focused on an initial exploration of the dataset, with R playing a vital role in deepening the understanding of data science and enhancing analytical skills (Crawley 2012).
