@@ -1,0 +1,38 @@
+name: Build Quarto Site
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: stable
+
+      - name: Render Quarto document
+        run: |
+          quarto render your_file.qmd
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: rendered-quarto-output
+          path: _site/
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
